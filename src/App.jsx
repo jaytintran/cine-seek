@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import Search from "./components/Search";
 import Spinner from "./components/Spinner";
 import MovieCard from "./components/MovieCard";
+import ToggleButtons from "./components/ToggleButtons";
+import menMoviesIds from "./constants/movieIds";
 
 const API_BASE_URl = "https://api.themoviedb.org/3";
 
@@ -21,7 +23,9 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [movies, setMovies] = useState([]);
+  const [menMovies, setMenMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeView, setActiveView] = useState("all");
 
   const fetchMovies = async (query = "") => {
     setIsLoading(true);
@@ -57,10 +61,53 @@ const App = () => {
     }
   };
 
+  const fetchMenMovies = async () => {
+    setIsLoading(true);
+    setErrorMessage("");
+    try {
+      const movieIds = [550, 1402, 1366, 51876]; // Add more IDs
+      movieIds.push(
+        ...menMoviesIds.fearlessLeader,
+        ...menMoviesIds.powerStrategy,
+        ...menMoviesIds.confidenceTactics,
+        ...menMoviesIds.businessHustle
+      );
+      console.log(movieIds);
+
+      // Map over movieIds and create an array of fetch promises
+      const moviePromises = movieIds.map(async (id) => {
+        const response = await fetch(
+          `${API_BASE_URl}/movie/${id}`,
+          API_OPTIONS
+        );
+        if (!response.ok) throw new Error("Network response was not ok");
+
+        return response.json();
+      });
+
+      // Wait for all promises to resolve
+      const movies = await Promise.all(moviePromises);
+
+      // Update state with all movies at once
+      setMenMovies(movies);
+    } catch (err) {
+      setErrorMessage(`Error fetching movies. Please try again later.`);
+      console.log(`Error fetching movies: ${err}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch movies when search term changes
   useEffect(() => {
     console.log(API_KEY);
     fetchMovies(searchTerm);
   }, [searchTerm]);
+
+  // Fetch men's recommended movies on mount
+  useEffect(() => {
+    fetchMenMovies();
+  }, []);
 
   return (
     <main>
@@ -75,25 +122,48 @@ const App = () => {
             With CineSeek
           </h1>
 
-          <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          <div
+            style={{ visibility: activeView == "men" ? "hidden" : "visible" }}
+          >
+            <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          </div>
         </header>
 
-        <section className="all-movies">
-          <h2 className="mt-[40px]">All Movies</h2>
-          {isLoading ? (
-            <Spinner />
-          ) : errorMessage ? (
-            <p className="text-red-500">{errorMessage}</p>
-          ) : (
-            <ul>
-              {movies.map((movie) => (
-                <MovieCard movie={movie} key={movie.id} />
-              ))}
-            </ul>
-          )}
+        <ToggleButtons view={activeView} setView={setActiveView} />
 
-          {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-        </section>
+        {activeView == "men" ? (
+          <section className="all-movies">
+            <h2 className="mt-[40px]">Recommended for Men</h2>
+            {isLoading ? (
+              <Spinner />
+            ) : errorMessage ? (
+              <p className="text-red-500">{errorMessage}</p>
+            ) : (
+              <ul>
+                {menMovies.map((movie) => (
+                  <MovieCard movie={movie} key={movie.id} />
+                ))}
+              </ul>
+            )}
+          </section>
+        ) : (
+          <section className="all-movies">
+            <h2 className="mt-[40px]">All Movies</h2>
+            {isLoading ? (
+              <Spinner />
+            ) : errorMessage ? (
+              <p className="text-red-500">{errorMessage}</p>
+            ) : (
+              <ul>
+                {movies.map((movie) => (
+                  <MovieCard movie={movie} key={movie.id} />
+                ))}
+              </ul>
+            )}
+
+            {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+          </section>
+        )}
       </div>
     </main>
   );
