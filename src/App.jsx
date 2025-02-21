@@ -4,6 +4,7 @@ import Spinner from "./components/Spinner";
 import MovieCard from "./components/MovieCard";
 import ToggleButtons from "./components/ToggleButtons";
 import menMoviesIds from "./constants/movieIds";
+import { updateSearchCount } from "./appwrite";
 
 const API_BASE_URl = "https://api.themoviedb.org/3";
 
@@ -26,6 +27,7 @@ const App = () => {
   const [menMovies, setMenMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeView, setActiveView] = useState("all");
+  // new state for debounce search term
 
   const fetchMovies = async (query = "") => {
     setIsLoading(true);
@@ -53,6 +55,8 @@ const App = () => {
       }
 
       setMovies(data.results || []);
+
+      updateSearchCount();
     } catch (err) {
       setErrorMessage(`Error fetching movies. Please try again later.`);
       console.log(`Error fetching movies: ${err}`);
@@ -65,14 +69,17 @@ const App = () => {
     setIsLoading(true);
     setErrorMessage("");
     try {
-      const movieIds = [550, 1402, 1366, 51876]; // Add more IDs
-      movieIds.push(
+      const movieIds = [
+        550,
+        1402,
+        1366,
+        51876,
         ...menMoviesIds.fearlessLeader,
         ...menMoviesIds.powerStrategy,
         ...menMoviesIds.confidenceTactics,
-        ...menMoviesIds.businessHustle
-      );
-      console.log(movieIds);
+        ...menMoviesIds.businessHustle,
+      ]; // Add more ID
+      // console.log(movieIds);
 
       // Map over movieIds and create an array of fetch promises
       const moviePromises = movieIds.map(async (id) => {
@@ -89,7 +96,7 @@ const App = () => {
       const movies = await Promise.all(moviePromises);
 
       // Update state with all movies at once
-      setMenMovies(movies);
+      setMenMovies(movies || []);
     } catch (err) {
       setErrorMessage(`Error fetching movies. Please try again later.`);
       console.log(`Error fetching movies: ${err}`);
@@ -98,10 +105,22 @@ const App = () => {
     }
   };
 
-  // Fetch movies when search term changes
+  // Fetch movies when search term changes, with debounce to optimize
   useEffect(() => {
-    console.log(API_KEY);
-    fetchMovies(searchTerm);
+    // console.log(API_KEY);
+    fetchMovies("");
+
+    const delay = setTimeout(() => {
+      // Only set loading when debounce finishes
+      setIsLoading(true);
+
+      fetchMovies(searchTerm);
+
+      // Stop loading after fetching
+      setIsLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(delay);
   }, [searchTerm]);
 
   // Fetch men's recommended movies on mount
