@@ -4,7 +4,7 @@ import Spinner from "./components/Spinner";
 import MovieCard from "./components/MovieCard";
 import ToggleButtons from "./components/ToggleButtons";
 import menMoviesIds from "./constants/movieIds";
-import { updateSearchCount } from "./appwrite";
+import { getTrendingMovies, updateSearchCount } from "./appwrite";
 
 const API_BASE_URl = "https://api.themoviedb.org/3";
 
@@ -23,10 +23,14 @@ const API_OPTIONS = {
 const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+
   const [movies, setMovies] = useState([]);
   const [menMovies, setMenMovies] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [trendingMovies, setTrendingMovies] = useState([]);
+
   const [activeView, setActiveView] = useState("all");
+  const [isLoading, setIsLoading] = useState(false);
+
   // new state for debounce search term
 
   const fetchMovies = async (query = "") => {
@@ -56,7 +60,9 @@ const App = () => {
 
       setMovies(data.results || []);
 
-      updateSearchCount();
+      if (query && data.results.length > 0) {
+        await updateSearchCount(query, data.results[0]);
+      }
     } catch (err) {
       setErrorMessage(`Error fetching movies. Please try again later.`);
       console.log(`Error fetching movies: ${err}`);
@@ -105,6 +111,14 @@ const App = () => {
     }
   };
 
+  const fetchTrendingMovies = async () => {
+    try {
+      const movies = await getTrendingMovies();
+      setTrendingMovies(movies);
+    } catch (err) {
+      console.log(`Error fetching movies: ${err}`);
+    }
+  };
   // Fetch movies when search term changes, with debounce to optimize
   useEffect(() => {
     // console.log(API_KEY);
@@ -123,8 +137,9 @@ const App = () => {
     return () => clearTimeout(delay);
   }, [searchTerm]);
 
-  // Fetch men's recommended movies on mount
+  // Fetch trending and men's recommended movies on mount
   useEffect(() => {
+    fetchTrendingMovies();
     fetchMenMovies();
   }, []);
 
@@ -144,11 +159,31 @@ const App = () => {
           <div
             style={{ visibility: activeView == "men" ? "hidden" : "visible" }}
           >
-            <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+            {/* <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} /> */}
           </div>
         </header>
 
-        <ToggleButtons view={activeView} setView={setActiveView} />
+        {trendingMovies.length > 0 ? (
+          <section className="trending mt-[40px]">
+            <h2>Most Searched</h2>
+            <ul>
+              {trendingMovies.map((movie, index) => (
+                <li key={movie.id}>
+                  <p>{index + 1}</p>
+                  <img
+                    src={`https://image.tmdb.org/t/p/w500/${movie.posterUrl}`}
+                    alt={movie.movieTitle}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        <div className="flex align-center justify-between md:flex-row flex-col mt-[40px]">
+          <ToggleButtons view={activeView} setView={setActiveView} />
+          <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        </div>
 
         {activeView == "men" ? (
           <section className="all-movies">
