@@ -151,6 +151,9 @@ const App = () => {
         <header>
           <img src="./hero-img.png" />
 
+          <div>
+            <img src="./logo.png" className="w-[200px] md:w-[300px]" />
+          </div>
           <h1>
             Find <span className="text-gradient">Trending Movies</span> You Love
             With CineSeek
