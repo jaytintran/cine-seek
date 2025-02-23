@@ -1,5 +1,7 @@
 ### 🤖 Introduction
 
+![image](https://github.com/user-attachments/assets/a9f62892-7e24-403b-9d28-c14eddae49e9)
+
 Built with React.js for the user interface, Appwrite for the Trending Movies Algorithm, and styled with TailwindCSS. CineSeek is a website project designed to with basic React.js. The platform offers a sleek and modern experience for browsing and discovering movies.
 
 ### ⚙️ Tech Stack
