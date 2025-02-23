@@ -4,7 +4,7 @@ function MovieCard({
   onClick,
 }) {
   return (
-    <li className="movie-card" onClick={onClick}>
+    <li className="movie-card cursor-pointer" onClick={onClick}>
       <img
         src={
           poster_path

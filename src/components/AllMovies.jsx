@@ -4,7 +4,7 @@ import MovieCard from "./MovieCard";
 
 function AllMovies({ movies, isLoading, errorMessage, setSelectedMovie }) {
   return (
-    <section className="all-movies cursor-pointer">
+    <section className="all-movies">
       <h2 className="mt-[40px]">Recommended for Men</h2>
       {isLoading ? (
         <Spinner />

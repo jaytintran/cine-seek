@@ -67,7 +67,7 @@ const MovieDetails = ({ movie, onBack }) => {
         {trailer && (
           <iframe
             width="100%"
-            height="315"
+            height="415"
             src={`https://www.youtube.com/embed/${trailer}`}
             title="YouTube video player"
             frameBorder="0"
