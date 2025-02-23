@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import Search from "./components/Search";
-import Spinner from "./components/Spinner";
-import MovieCard from "./components/MovieCard";
 import ToggleButtons from "./components/ToggleButtons";
 import menMoviesIds from "./constants/movieIds";
 import { getTrendingMovies, updateSearchCount } from "./appwrite";
+import MovieDetails from "./components/MovieDetails";
+import AllMovies from "./components/AllMovies";
 
 const API_BASE_URl = "https://api.themoviedb.org/3";
 
@@ -30,6 +30,8 @@ const App = () => {
 
   const [activeView, setActiveView] = useState("all");
   const [isLoading, setIsLoading] = useState(false);
+
+  const [selectedMovie, setSelectedMovie] = useState(null);
 
   // new state for debounce search term
 
@@ -148,79 +150,71 @@ const App = () => {
       <div className="pattern" />
 
       <div className="wrapper">
-        <header>
-          <img src="./hero-img.png" />
-
-          <div>
-            <img src="./logo.png" className="w-[200px] md:w-[300px]" />
-          </div>
-          <h1>
-            Find <span className="text-gradient">Trending Movies</span> You Love
-            With CineSeek
-          </h1>
-
-          <div
-            style={{ visibility: activeView == "men" ? "hidden" : "visible" }}
-          >
-            {/* <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} /> */}
-          </div>
-        </header>
-
-        {trendingMovies.length > 0 ? (
-          <section className="trending mt-[40px]">
-            <h2>Most Searched</h2>
-            <ul>
-              {trendingMovies.map((movie, index) => (
-                <li key={movie.id}>
-                  <p>{index + 1}</p>
-                  <img
-                    src={`https://image.tmdb.org/t/p/w500/${movie.posterUrl}`}
-                    alt={movie.movieTitle}
-                  />
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-
-        <div className="flex align-center justify-between md:flex-row flex-col mt-[40px]">
-          <ToggleButtons view={activeView} setView={setActiveView} />
-          <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        </div>
-
-        {activeView == "men" ? (
-          <section className="all-movies">
-            <h2 className="mt-[40px]">Recommended for Men</h2>
-            {isLoading ? (
-              <Spinner />
-            ) : errorMessage ? (
-              <p className="text-red-500">{errorMessage}</p>
-            ) : (
-              <ul>
-                {menMovies.map((movie) => (
-                  <MovieCard movie={movie} key={movie.id} />
-                ))}
-              </ul>
-            )}
-          </section>
-        ) : (
-          <section className="all-movies">
-            <h2 className="mt-[40px]">All Movies</h2>
-            {isLoading ? (
-              <Spinner />
-            ) : errorMessage ? (
-              <p className="text-red-500">{errorMessage}</p>
-            ) : (
-              <ul>
-                {movies.map((movie) => (
-                  <MovieCard movie={movie} key={movie.id} />
-                ))}
-              </ul>
-            )}
-
-            {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-          </section>
+        {selectedMovie && (
+          <MovieDetails
+            movie={selectedMovie}
+            onBack={() => setSelectedMovie(null)}
+          />
         )}
+        <>
+          <header>
+            <img src="./hero-img.png" />
+
+            <div>
+              <img src="./logo.png" className="w-[200px] md:w-[300px]" />
+            </div>
+            <h1>
+              Find <span className="text-gradient">Trending Movies</span> You
+              Love With CineSeek
+            </h1>
+
+            <div
+              style={{
+                visibility: activeView == "men" ? "hidden" : "visible",
+              }}
+            >
+              {/* <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} /> */}
+            </div>
+          </header>
+
+          {trendingMovies.length > 0 ? (
+            <section className="trending mt-[40px]">
+              <h2>Most Searched</h2>
+              <ul>
+                {trendingMovies.map((movie, index) => (
+                  <li key={index}>
+                    <p>{index + 1}</p>
+                    <img
+                      src={`https://image.tmdb.org/t/p/w500/${movie.posterUrl}`}
+                      alt={movie.movieTitle}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          <div className="flex align-center justify-between md:flex-row flex-col mt-[40px]">
+            <ToggleButtons view={activeView} setView={setActiveView} />
+            <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          </div>
+
+          {activeView == "men" ? (
+            <AllMovies
+              movies={menMovies}
+              setSelectedMovie={setSelectedMovie}
+              isLoading={isLoading}
+              errorMessage={errorMessage}
+            />
+          ) : (
+            <AllMovies
+              movies={movies}
+              setSelectedMovie={setSelectedMovie}
+              isLoading={isLoading}
+              errorMessage={errorMessage}
+            />
+          )}
+        </>
       </div>
     </main>
   );

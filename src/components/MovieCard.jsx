@@ -1,9 +1,10 @@
 /* eslint-disable react/prop-types */
 function MovieCard({
   movie: { title, vote_average, poster_path, release_date, original_language },
+  onClick,
 }) {
   return (
-    <li className="movie-card">
+    <li className="movie-card" onClick={onClick}>
       <img
         src={
           poster_path
